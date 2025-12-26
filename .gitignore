@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Storage (ไม่เก็บรูปภาพบน GitHub)
+backend/storage/raw/*
+backend/storage/translated/*
+!backend/storage/raw/.gitkeep
+!backend/storage/translated/.gitkeep
+
+# Chrome/Driver
+chromedriver.exe

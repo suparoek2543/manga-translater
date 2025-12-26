@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manga Reader</title>
+    <style>
+        body { background: #1a1a1a; color: white; font-family: sans-serif; margin: 0; display: flex; }
+        .reader { flex: 1; overflow-y: auto; text-align: center; height: 100vh; }
+        .reader img { max-width: 800px; width: 100%; display: block; margin: 0 auto; }
+        .sidebar { width: 300px; background: #252525; padding: 20px; border-left: 1px solid #444; }
+        input { width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 4px; border: none; }
+        button { width: 100%; padding: 10px; background: #ff4500; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="reader" id="image-container">
+        <h2>กรุณาเลือกมังงะหรือใส่ลิงก์เพื่อแปล</h2>
+    </div>
+    <div class="sidebar">
+        <h3>แปลมังงะใหม่</h3>
+        <input type="text" id="manga-url" placeholder="วางลิงก์ MangaDex ที่นี่">
+        <button onclick="startTranslate()">เริ่มแปล</button>
+        <hr>
+        <h3>ตู้หนังสือของคุณ</h3>
+        <div id="manga-list"></div>
+    </div>
+
+    <script>
+        async function startTranslate() {
+            const url = document.getElementById('manga-url').value;
+            await fetch(`http://localhost:8000/translate?url=${encodeURIComponent(url)}`, {method: 'POST'});
+            alert('ระบบกำลังเริ่มโหลดและแปล กรุณารอสักครู่...');
+        }
+
+        async function loadLibrary() {
+            const res = await fetch('http://localhost:8000/library');
+            const data = await res.json();
+            const list = document.getElementById('manga-list');
+            list.innerHTML = data.map(m => `
+                <div>
+                    <strong>${m.title}</strong>
+                    <ul>${m.chapters.map(ch => `<li style="cursor:pointer" onclick="viewManga('${m.title}', '${ch}')">${ch}</li>`).join('')}</ul>
+                </div>
+            `).join('');
+        }
+
+        async function viewManga(title, ch) {
+            // ดึงชื่อไฟล์รูปทั้งหมดในตอนนั้น (สมมติว่าเป็น 001.jpg, 002.jpg...)
+            // ในที่นี้แนะนำให้ Backend ส่งรายชื่อไฟล์มาด้วย แต่เพื่อความง่ายจะลองโหลด 1-50 รูป
+            const container = document.getElementById('image-container');
+            container.innerHTML = '';
+            for(let i=1; i<=100; i++) {
+                const img = document.createElement('img');
+                const num = i.toString().padStart(3, '0');
+                img.src = `http://localhost:8000/images/${title}/${ch}/${num}.jpg`;
+                img.onerror = () => img.remove(); // ถ้าไม่มีรูปให้ลบทิ้ง
+                container.appendChild(img);
+            }
+        }
+        loadLibrary();
+    </script>
+</body>
+</html>
